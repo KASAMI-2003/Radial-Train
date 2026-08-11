@@ -2,11 +2,17 @@
 蛋白质 AFM 3D U-Net 训练脚本
 
 基于冰代码的 train_det.py，适配蛋白质多元素预测。
-使用 14 核 CPU 训练。
+自动检测 Windows/Linux 平台，适配分布式环境 (SLURM)。
 
 用法:
+    # CPU 训练 (自动检测核心数)
     python src/train_protein.py --device cpu --outdir outputs/
-    python src/train_protein.py --device cuda --outdir outputs/  # 有 GPU 时
+
+    # GPU 训练
+    python src/train_protein.py --device cuda --outdir outputs/
+
+    # 强制指定线程数 / GPU ID
+    python src/train_protein.py --device cuda --gpu-id 0 --num-threads 8
 """
 
 import os
@@ -30,13 +36,24 @@ from src.dataset import DetectDataset
 from src.utils import box2atom, plot_preditions
 
 
+IS_WINDOWS = sys.platform == "win32"
+
+
 def get_parser():
     parser = ArgumentParser()
     parser.add_argument("--debug", action="store_true", help="Debug mode")
-    parser.add_argument("--device", type=str, default="cpu", help="Device: cpu or cuda")
-    parser.add_argument("--outdir", type=str, default="outputs/", help="Output directory")
-    parser.add_argument("--train-ratio", type=float, default=0.8, help="Training split ratio")
-    parser.add_argument("--num-threads", type=int, default=0, help="CPU线程数 (0=自动, Windows建议设大)")
+    parser.add_argument("--device", type=str, default="cpu",
+                        help="Device: cpu or cuda")
+    parser.add_argument("--gpu-id", type=int, default=0,
+                        help="GPU 编号 (仅 --device cuda 时生效)")
+    parser.add_argument("--outdir", type=str, default="outputs/",
+                        help="Output directory")
+    parser.add_argument("--train-ratio", type=float, default=0.8,
+                        help="Training split ratio")
+    parser.add_argument("--num-threads", type=int, default=0,
+                        help="CPU / OMP 线程数 (0=自动检测)")
+    parser.add_argument("--num-workers", type=int, default=-1,
+                        help="DataLoader workers (-1=自动)")
     return parser.parse_args()
 
 
@@ -299,15 +316,43 @@ def main():
         cfg.setting.epoch = 3
         cfg.setting.pin_memory = False
 
-    if args.device == "cpu":
-        # Windows 兼容: 使用 OMP/MKL 线程（不能用 DataLoader workers）
-        n_threads = args.num_threads if args.num_threads > 0 else 8
-        os.environ["OMP_NUM_THREADS"] = str(n_threads)
-        os.environ["MKL_NUM_THREADS"] = str(n_threads)
+    # ---- 平台自动配置 ----
+    if args.device == "cuda":
+        os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu_id)
+        n_threads = args.num_threads if args.num_threads > 0 else 4
         torch.set_num_threads(n_threads)
-        cfg.setting.num_workers = 0
-        cfg.setting.pin_memory = False
-        print(f"CPU 线程数: {torch.get_num_threads()} (OMP/MKL), batch_size={cfg.setting.batch_size}")
+
+        if IS_WINDOWS:
+            cfg.setting.num_workers = 0
+            cfg.setting.pin_memory = False
+        else:
+            cfg.setting.num_workers = args.num_workers if args.num_workers >= 0 else 4
+            cfg.setting.pin_memory = True
+
+        print(f"GPU {args.gpu_id} | CPU线程: {n_threads} | "
+              f"workers: {cfg.setting.num_workers} | batch_size={cfg.setting.batch_size}")
+
+    elif args.device == "cpu":
+        if IS_WINDOWS:
+            # Windows: 不能用 DataLoader workers, 仅靠 OMP/MKL 线程并行
+            n_threads = args.num_threads if args.num_threads > 0 else 8
+            os.environ["OMP_NUM_THREADS"] = str(n_threads)
+            os.environ["MKL_NUM_THREADS"] = str(n_threads)
+            torch.set_num_threads(n_threads)
+            cfg.setting.num_workers = 0
+            cfg.setting.pin_memory = False
+            print(f"[Windows] CPU 线程数: {torch.get_num_threads()} (OMP/MKL), "
+                  f"batch_size={cfg.setting.batch_size}")
+        else:
+            # Linux CPU: DataLoader workers + OMP/MKL 线程双路并行
+            n_threads = args.num_threads if args.num_threads > 0 else os.cpu_count() or 8
+            os.environ["OMP_NUM_THREADS"] = str(n_threads)
+            os.environ["MKL_NUM_THREADS"] = str(n_threads)
+            torch.set_num_threads(n_threads)
+            cfg.setting.num_workers = args.num_workers if args.num_workers >= 0 else 4
+            cfg.setting.pin_memory = True
+            print(f"[Linux] OMP/MKL 线程: {n_threads} | DataLoader workers: "
+                  f"{cfg.setting.num_workers} | batch_size={cfg.setting.batch_size}")
 
     try:
         start = time.time()

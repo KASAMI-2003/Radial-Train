@@ -1,30 +1,29 @@
 """
 蛋白质 AFM 预测脚本
 加载训练好的模型，对 AFM 图像预测原子位置 (C, N, O)
+支持 CPU / GPU，适配 Windows / Linux。
 
 用法:
-    python src/predict_protein.py --ckpt outputs/20260811-185149-protein/PROTEIN_E003_L5.078e-01.pkl --afm dataset/protein_train/afm/1enh_040
-
-    批量预测:
-    python src/predict_protein.py --ckpt <checkpoint.pkl> --afm-dir dataset/protein_train/afm
+    python src/predict_protein.py --ckpt <checkpoint.pkl> --afm dataset/protein_train/afm/1enh_040
+    python src/predict_protein.py --ckpt <checkpoint.pkl> --afm-dir dataset/protein_train/afm --save-xyz --device cuda
 """
 
 import os
 import sys
-import pickle
 import argparse
 import numpy as np
 import torch
 
 from pathlib import Path
 from PIL import Image
-from ase import Atoms
 from ase.io import write
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from configs.protein_detect import ProteinDetectConfig as Config
 from src.network import UNetND
 from src.utils import box2atom
+
+IS_WINDOWS = sys.platform == "win32"
 
 
 def load_model(ckpt_path: Path, device: torch.device):
@@ -37,6 +36,7 @@ def load_model(ckpt_path: Path, device: torch.device):
     model.requires_grad_(False)
     print(f"已加载模型: {ckpt_path}")
     print(f"  参数数量: {sum(p.numel() for p in model.parameters()):,}")
+    print(f"  设备: {device}")
     return model, cfg
 
 
@@ -86,14 +86,28 @@ def voxel_to_atoms(preds, cfg):
 
 def main():
     parser = argparse.ArgumentParser(description="蛋白质 AFM 预测")
-    parser.add_argument("--ckpt", type=str, required=True, help="模型 checkpoint .pkl 路径")
-    parser.add_argument("--afm", type=str, default=None, help="单个 AFM 图像目录")
-    parser.add_argument("--afm-dir", type=str, default=None, help="批量 AFM 图像父目录")
-    parser.add_argument("--outdir", type=str, default="predictions/", help="输出目录")
-    parser.add_argument("--save-xyz", action="store_true", help="保存 XYZ 文件")
+    parser.add_argument("--ckpt", type=str, required=True,
+                        help="模型 checkpoint .pkl 路径")
+    parser.add_argument("--afm", type=str, default=None,
+                        help="单个 AFM 图像目录")
+    parser.add_argument("--afm-dir", type=str, default=None,
+                        help="批量 AFM 图像父目录")
+    parser.add_argument("--outdir", type=str, default="predictions/",
+                        help="输出目录")
+    parser.add_argument("--save-xyz", action="store_true",
+                        help="保存 XYZ 文件")
+    parser.add_argument("--device", type=str, default="cpu",
+                        help="Device: cpu or cuda")
+    parser.add_argument("--gpu-id", type=int, default=0,
+                        help="GPU 编号 (仅 --device cuda 时生效)")
     args = parser.parse_args()
 
-    device = torch.device("cpu")
+    if args.device == "cuda":
+        os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu_id)
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+
     ckpt = Path(args.ckpt)
     if not ckpt.exists():
         print(f"错误: checkpoint 不存在: {ckpt}")
