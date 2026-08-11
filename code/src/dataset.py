@@ -65,7 +65,7 @@ class DetectDataset(Dataset):
         
         if mode == 'afm+label':            
             afm_dirs = set(self.fname.glob("afm/*"))
-            label_files = self.fname.glob(r"label/*.*")
+            label_files = self.fname.glob("label/*.xyz")
             
             self.keys = []
             for l in label_files:
