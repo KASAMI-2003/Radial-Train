@@ -1,12 +1,8 @@
 #!/bin/bash
 # ============================================================
-# N26 集群预测推理脚本
-#
-# 提交方式: sbatch --gpus=1 ./slurm/predict.sh
-#
-# 使用前修改下面两行:
-#   CKPT   -> 训练产出的 .pkl checkpoint 路径
-#   AFM_DIR -> 待预测的 AFM 图像目录
+# N26 预测推理
+# 提交: sbatch --gpus=1 ./slurm/predict.sh
+# 使用前修改 CKPT 指向训练产出的 .pkl
 # ============================================================
 
 #SBATCH --job-name=afm-predict
@@ -18,20 +14,16 @@
 
 set -e
 
-# ---- 集群路径 (按实际存放位置修改) ----
 PROJECT_DIR="$HOME/AFM_ML_code"
 DATA_DIR="/data02/$USER/afm_protein"
-CONDA_ENV="protein_afm"
+VENV_DIR="$DATA_DIR/venv"
+WORK_DIR="$DATA_DIR/run"
 
 # ---- 修改这里 ----
-CKPT="$DATA_DIR/run/outputs/YYYYMMDD-HHMMSS-protein/PROTEIN_E050_LX.XXXe-01.pkl"
+CKPT="$WORK_DIR/outputs/YYYYMMDD-HHMMSS-protein/PROTEIN_E050_LX.XXXe-01.pkl"
 AFM_DIR="$DATA_DIR/dataset/protein_train/afm"
 
-# ---- 激活环境 ----
-source "$(conda info --base)/etc/profile.d/conda.sh"
-conda activate "$CONDA_ENV"
-
-WORK_DIR="$DATA_DIR/run"
+source "$VENV_DIR/bin/activate"
 mkdir -p "$WORK_DIR/slurm_logs"
 cd "$PROJECT_DIR/code"
 

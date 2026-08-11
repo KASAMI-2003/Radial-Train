@@ -1,12 +1,8 @@
 #!/bin/bash
 # ============================================================
-# N26 集群训练入口脚本
-#
-# 提交方式: sbatch --gpus=1 ./slurm/run.sh
-# 多卡:     sbatch --gpus=2 ./slurm/run.sh
-#
-# 固定配比: 1 GPU = 10 CPU 核 + 38 GB 内存
-#           2 GPU = 20 CPU 核 + 76 GB 内存
+# N26 训练脚本
+# 提交: sbatch --gpus=1 ./slurm/run.sh       (1卡=10核+38GB)
+#       sbatch --gpus=2 ./slurm/run.sh       (2卡=20核+76GB)
 # ============================================================
 
 #SBATCH --job-name=protein-afm
@@ -18,31 +14,21 @@
 
 set -e
 
-# ---- 集群路径 (按实际存放位置修改) ----
-PROJECT_DIR="$HOME/AFM_ML_code"       # home 只放代码, <1GB
-DATA_DIR="/data02/$USER/afm_protein"  # 数据集放 /data02
-CONDA_ENV="protein_afm"
-
-# ---- 激活环境 ----
-source "$(conda info --base)/etc/profile.d/conda.sh"
-conda activate "$CONDA_ENV"
-
-# ---- 切换到 run 目录 ----
+PROJECT_DIR="$HOME/AFM_ML_code"
+DATA_DIR="/data02/$USER/afm_protein"
+VENV_DIR="$DATA_DIR/venv"
 WORK_DIR="$DATA_DIR/run"
+
+source "$VENV_DIR/bin/activate"
 mkdir -p "$WORK_DIR/slurm_logs"
 cd "$PROJECT_DIR/code"
 
 echo "============================================"
 echo "节点: $(hostname)"
-echo "GPU 卡数: $(nvidia-smi -L | wc -l)"
-echo "GPU: $(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null)"
-echo "CUDA: $(python -c 'import torch; print(torch.cuda.is_available())')"
-echo "数据: $DATA_DIR"
+echo "GPU:  $(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null) x $(nvidia-smi -L 2>/dev/null | wc -l)"
 echo "开始: $(date)"
 echo "============================================"
 
-# ---- 训练 ----
-# N26 集群 1 GPU = 10 核, 使用 --num-workers 4 充分利用
 python src/train_protein.py \
     --device cuda \
     --gpu-id 0 \
