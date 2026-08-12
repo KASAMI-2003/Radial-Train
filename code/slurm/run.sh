@@ -14,11 +14,11 @@
 
 set -e
 
-PROJECT_DIR="$HOME/AFM_ML_code"
+PROJECT_DIR="$HOME/Radial-Train"
 BASE_DIR="$HOME/run/protein_afm"
 VENV_DIR="$BASE_DIR/venv"
 
-mkdir -p "$HOME/AFM_ML_code/code/slurm_logs"
+mkdir -p "$PROJECT_DIR/code/slurm_logs"
 mkdir -p "$BASE_DIR/slurm_logs"
 
 source "$VENV_DIR/bin/activate"

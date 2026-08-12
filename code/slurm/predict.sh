@@ -14,7 +14,7 @@
 
 set -e
 
-PROJECT_DIR="$HOME/AFM_ML_code"
+PROJECT_DIR="$HOME/Radial-Train"
 BASE_DIR="$HOME/run/protein_afm"
 VENV_DIR="$BASE_DIR/venv"
 
@@ -22,7 +22,7 @@ VENV_DIR="$BASE_DIR/venv"
 CKPT="$BASE_DIR/outputs/YYYYMMDD-HHMMSS-protein/PROTEIN_EXXX_LX.XXXe-01.pkl"
 AFM_DIR="$BASE_DIR/dataset/protein_train/afm"
 
-mkdir -p "$HOME/AFM_ML_code/code/slurm_logs"
+mkdir -p "$PROJECT_DIR/code/slurm_logs"
 
 source "$VENV_DIR/bin/activate"
 cd "$PROJECT_DIR/code"

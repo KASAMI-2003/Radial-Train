@@ -8,7 +8,7 @@
 
 set -e
 
-PROJECT_DIR="${1:-$HOME/AFM_ML_code}"
+PROJECT_DIR="${1:-$HOME/Radial-Train}"
 BASE_DIR="$HOME/run/protein_afm"
 VENV_DIR="$BASE_DIR/venv"
 
