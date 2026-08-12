@@ -8,7 +8,7 @@
 
 set -e
 
-PROJECT_DIR="${1:-$HOME/Radial-Train}"
+PROJECT_DIR="${1:-$HOME/run/test/Radial-Train}"
 BASE_DIR="$HOME/run/protein_afm"
 VENV_DIR="$BASE_DIR/venv"
 
