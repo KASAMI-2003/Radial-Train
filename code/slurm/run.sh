@@ -6,8 +6,8 @@
 # ============================================================
 
 #SBATCH --job-name=protein-afm
-#SBATCH --output=slurm_logs/train-%j.out
-#SBATCH --error=slurm_logs/train-%j.err
+#SBATCH --output=/data02/home/%u/run/test/Radial-Train/code/slurm_logs/train-%j.out
+#SBATCH --error=/data02/home/%u/run/test/Radial-Train/code/slurm_logs/train-%j.err
 #SBATCH --time=24:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1

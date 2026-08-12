@@ -31,6 +31,7 @@ fi
 mkdir -p "$BASE_DIR/dataset/protein_pdbs"
 mkdir -p "$BASE_DIR/dataset/protein_train"
 mkdir -p "$BASE_DIR/slurm_logs"
+mkdir -p "$PROJECT_DIR/code/slurm_logs"
 
 # ---- 步骤 1: 下载 PDB (login 节点有网络) ----
 echo ""

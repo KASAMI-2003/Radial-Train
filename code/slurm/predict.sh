@@ -6,8 +6,8 @@
 # ============================================================
 
 #SBATCH --job-name=afm-predict
-#SBATCH --output=slurm_logs/predict-%j.out
-#SBATCH --error=slurm_logs/predict-%j.err
+#SBATCH --output=/data02/home/%u/run/test/Radial-Train/code/slurm_logs/predict-%j.out
+#SBATCH --error=/data02/home/%u/run/test/Radial-Train/code/slurm_logs/predict-%j.err
 #SBATCH --time=02:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
