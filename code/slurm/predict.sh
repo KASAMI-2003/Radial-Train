@@ -6,8 +6,8 @@
 # ============================================================
 
 #SBATCH --job-name=afm-predict
-#SBATCH --output=/data02/%u/afm_protein/run/slurm_logs/predict-%j.out
-#SBATCH --error=/data02/%u/afm_protein/run/slurm_logs/predict-%j.err
+#SBATCH --output=slurm_logs/predict-%j.out
+#SBATCH --error=slurm_logs/predict-%j.err
 #SBATCH --time=02:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -15,23 +15,16 @@
 set -e
 
 PROJECT_DIR="$HOME/AFM_ML_code"
-DATA_DIR="/data02/$USER/afm_protein"
-VENV_DIR="$DATA_DIR/venv"
-WORK_DIR="$DATA_DIR/run"
+BASE_DIR="$HOME/run/protein_afm"
+VENV_DIR="$BASE_DIR/venv"
 
-# ---- 修改这里 ----
-CKPT="$WORK_DIR/outputs/YYYYMMDD-HHMMSS-protein/PROTEIN_E050_LX.XXXe-01.pkl"
-AFM_DIR="$DATA_DIR/dataset/protein_train/afm"
+# ---- 修改这里为实际的 checkpoint 路径 ----
+CKPT="$BASE_DIR/outputs/YYYYMMDD-HHMMSS-protein/PROTEIN_EXXX_LX.XXXe-01.pkl"
+AFM_DIR="$BASE_DIR/dataset/protein_train/afm"
 
-mkdir -p "$WORK_DIR/slurm_logs"
+mkdir -p "$HOME/AFM_ML_code/code/slurm_logs"
 
-if [ -f "$VENV_DIR/bin/activate" ]; then
-    source "$VENV_DIR/bin/activate"
-else
-    echo "错误: 虚拟环境不存在: $VENV_DIR"
-    exit 1
-fi
-
+source "$VENV_DIR/bin/activate"
 cd "$PROJECT_DIR/code"
 
 echo "Node: $(hostname) | CKPT: $CKPT | Start: $(date)"
@@ -40,7 +33,7 @@ python src/predict_protein.py \
     --ckpt "$CKPT" \
     --afm-dir "$AFM_DIR" \
     --save-xyz \
-    --outdir "$WORK_DIR/predictions/" \
+    --outdir "$BASE_DIR/predictions/" \
     --device cuda
 
 echo "Done: $(date)"

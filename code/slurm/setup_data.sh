@@ -9,13 +9,13 @@
 set -e
 
 PROJECT_DIR="${1:-$HOME/AFM_ML_code}"
-DATA_DIR="/data02/$USER/afm_protein"
-VENV_DIR="$DATA_DIR/venv"
+BASE_DIR="$HOME/run/protein_afm"
+VENV_DIR="$BASE_DIR/venv"
 
 echo "============================================"
 echo "N26 数据准备"
 echo "  代码: $PROJECT_DIR"
-echo "  数据: $DATA_DIR"
+echo "  数据: $BASE_DIR"
 echo "============================================"
 
 # ---- 激活环境 ----
@@ -28,32 +28,32 @@ else
 fi
 
 # ---- 创建目录 ----
-mkdir -p "$DATA_DIR/dataset/protein_pdbs"
-mkdir -p "$DATA_DIR/dataset/protein_train"
-mkdir -p "$DATA_DIR/run/slurm_logs"
+mkdir -p "$BASE_DIR/dataset/protein_pdbs"
+mkdir -p "$BASE_DIR/dataset/protein_train"
+mkdir -p "$BASE_DIR/slurm_logs"
 
 # ---- 步骤 1: 下载 PDB (login 节点有网络) ----
 echo ""
 echo ">>> 步骤 1: 下载 PDB ..."
 cd "$PROJECT_DIR/code"
 python tools/download_pdbs.py \
-    --outdir "$DATA_DIR/dataset/protein_pdbs"
-echo "    PDB: $(ls "$DATA_DIR/dataset/protein_pdbs"/*.pdb 2>/dev/null | wc -l) 个"
+    --outdir "$BASE_DIR/dataset/protein_pdbs"
+echo "    PDB: $(ls "$BASE_DIR/dataset/protein_pdbs"/*.pdb 2>/dev/null | wc -l) 个"
 
 # ---- 步骤 2: 生成 AFM 数据 ----
 echo ""
 echo ">>> 步骤 2: 生成 AFM 图像 + XYZ 标签 ..."
 python tools/protein_afm_sim.py \
-    --pdb-dir "$DATA_DIR/dataset/protein_pdbs" \
-    --out-dir "$DATA_DIR/dataset/protein_train" \
+    --pdb-dir "$BASE_DIR/dataset/protein_pdbs" \
+    --out-dir "$BASE_DIR/dataset/protein_train" \
     --num-orientations 36
-echo "    样本: $(ls -d "$DATA_DIR/dataset/protein_train/afm"/*/ 2>/dev/null | wc -l) 个"
+echo "    样本: $(ls -d "$BASE_DIR/dataset/protein_train/afm"/*/ 2>/dev/null | wc -l) 个"
 
 # ---- 步骤 3: 软链接 ----
 echo ""
 echo ">>> 步骤 3: 创建软链接 ..."
-ln -sfn "$DATA_DIR/dataset"  "$PROJECT_DIR/code/dataset"
-ln -sfn "$DATA_DIR/run"      "$PROJECT_DIR/code/run"
+ln -sfn "$BASE_DIR/dataset"  "$PROJECT_DIR/code/dataset"
+ln -sfn "$BASE_DIR"           "$PROJECT_DIR/code/run_data"
 
 echo ""
 echo "============================================"

@@ -7,16 +7,17 @@
 set -e
 
 PROJECT_DIR="${1:-$HOME/AFM_ML_code}"
-DATA_DIR="/data02/$USER/afm_protein"
-VENV_DIR="$DATA_DIR/venv"
+BASE_DIR="$HOME/run/protein_afm"
+VENV_DIR="$BASE_DIR/venv"
 
 echo "============================================"
 echo "N26 Python 环境安装 -> $VENV_DIR"
 echo "============================================"
 
-# ---- 创建虚拟环境 ----
+mkdir -p "$BASE_DIR"
+
 echo ">>> 创建 venv ..."
-python3 -m venv "$VENV_DIR" || python -m venv "$VENV_DIR"
+python3 -m venv "$VENV_DIR"
 
 source "$VENV_DIR/bin/activate"
 pip install --upgrade pip setuptools wheel
