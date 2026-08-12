@@ -54,7 +54,7 @@ fi
 
 # ---- 科学计算 ----
 echo ">>> 安装依赖 ..."
-pip install numpy scipy pillow scikit-learn pandas matplotlib ase torchmetrics
+pip install numpy scipy pillow scikit-learn pandas matplotlib ase torchmetrics requests tqdm
 
 # ---- 验证 ----
 echo ""

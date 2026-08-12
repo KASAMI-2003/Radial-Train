@@ -58,8 +58,17 @@ def download_pdb(pdb_id: str, out_dir: Path) -> Path:
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="下载蛋白质 PDB 结构")
+    parser.add_argument("--outdir", type=str, default=None,
+                        help="输出目录 (默认: <repo_root>/dataset/protein_pdbs)")
+    args = parser.parse_args()
+
     repo_root = Path(__file__).resolve().parents[1]
-    out_dir = repo_root / "dataset" / "protein_pdbs"
+    if args.outdir:
+        out_dir = Path(args.outdir)
+    else:
+        out_dir = repo_root / "dataset" / "protein_pdbs"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"输出目录: {out_dir}")
