@@ -18,13 +18,19 @@ echo "  代码: $PROJECT_DIR"
 echo "  数据: $DATA_DIR"
 echo "============================================"
 
-# ---- 激活 venv ----
-source "$VENV_DIR/bin/activate"
+# ---- 激活环境 ----
+if [ -f "$VENV_DIR/bin/activate" ]; then
+    source "$VENV_DIR/bin/activate"
+else
+    echo "错误: 虚拟环境不存在: $VENV_DIR"
+    echo "请先运行: bash slurm/setup_venv.sh"
+    exit 1
+fi
 
 # ---- 创建目录 ----
 mkdir -p "$DATA_DIR/dataset/protein_pdbs"
 mkdir -p "$DATA_DIR/dataset/protein_train"
-mkdir -p "$DATA_DIR/run"
+mkdir -p "$DATA_DIR/run/slurm_logs"
 
 # ---- 步骤 1: 下载 PDB (login 节点有网络) ----
 echo ""
