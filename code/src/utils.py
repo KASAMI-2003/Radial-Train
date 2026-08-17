@@ -202,7 +202,7 @@ def box2vec(box_cls, box_off, *args, threshold=0.5):
     box_off = box_off[mask] + np.stack(mask, axis=-1)
     box_off = box_off / [X, Y, Z]
     args = [arg[mask] for arg in args]
-    return box_cls, box_off, *args
+    return (box_cls, box_off) + tuple(args)
 
 def masknms(pos, cutoff):
     mask = np.ones(pos.shape[0], dtype=np.bool_)
