@@ -492,6 +492,24 @@ class ResBlock(TimestepBlock):
         return self.skip_connection(x) + h
 
 
+def scaled_dot_product_attention(query, key, value):
+    """
+    PyTorch 1.x 没有 F.scaled_dot_product_attention, 这里实现等价的单头缩放点积注意力。
+
+    Args:
+        query (Tensor): (B, L, C)
+        key (Tensor):   (B, L, C)
+        value (Tensor): (B, L, C)
+
+    Returns:
+        Tensor: (B, L, C)
+    """
+    scale = query.shape[-1] ** -0.5
+    attn_weight = torch.matmul(query, key.transpose(-2, -1)) * scale
+    attn_weight = torch.softmax(attn_weight, dim=-1)
+    return torch.matmul(attn_weight, value)
+
+
 class AttentionBlock(nn.Module):
     """
     An attention block that allows spatial positions to attend to each other.
@@ -521,7 +539,7 @@ class AttentionBlock(nn.Module):
         self.q = nn.Linear(channels, channels)
         self.k = nn.Linear(channels, channels)
         self.v = nn.Linear(channels, channels)
-        self.attention = F.scaled_dot_product_attention
+        self.attention = scaled_dot_product_attention
 
         self.position_encode = PositionalEncoding(
             channels) if position_encode else None

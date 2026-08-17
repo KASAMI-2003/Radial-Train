@@ -30,7 +30,7 @@ def load_model(ckpt_path: Path, device: torch.device):
     """加载模型和配置"""
     cfg = Config()
     model = UNetND(**cfg.model.params.__dict__).to(device)
-    params = torch.load(str(ckpt_path), map_location=device, weights_only=True)
+    params = torch.load(str(ckpt_path), map_location=device)
     model.load_state_dict(params, strict=False)
     model.eval()
     model.requires_grad_(False)

@@ -277,7 +277,7 @@ class ProteinTrainer:
     def load_model(self):
         ckpt = self.cfg.model.checkpoint
         if ckpt and os.path.exists(ckpt):
-            params = torch.load(ckpt, map_location=self.device, weights_only=True)
+            params = torch.load(ckpt, map_location=self.device)
             mismatch = self.model.load_state_dict(params, strict=False)
             self.log.info(f"加载模型: {ckpt}")
             if mismatch.missing_keys:
