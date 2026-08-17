@@ -7,7 +7,7 @@ from functools import partial
 from itertools import chain
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from typing import Any
+from typing import Any, Optional, Tuple, Union
 from torch import nn, Tensor
 from torch.nn import functional as F
 
@@ -280,7 +280,7 @@ class MixBlock(ReferenceBlock):
     def __init__(self,
                  channels,
                  ref_channels,
-                 out_channels: None | int = None,
+                 out_channels: Optional[int] = None,
                  mode="concat",
                  dims=2):
         super().__init__()
@@ -312,7 +312,7 @@ class GatedResBlock(TimestepBlock):
                  channels,
                  dropout,
                  emb_channels=None,
-                 out_channels: None | int = None,
+                 out_channels: Optional[int] = None,
                  dims=3,
                  pos_emb=False):
         super().__init__()
@@ -559,8 +559,8 @@ class AttentionBlock(nn.Module):
 # copied and adapted from github: https://github.com/tatp22/multidim-positional-encoding/blob/master/positional_encodings/torch_encodings.py
 
 
-def positional_encoding(x: torch.Tensor | tuple,
-                        channels: int | None = None,
+def positional_encoding(x: Union[torch.Tensor, Tuple],
+                        channels: Optional[int] = None,
                         temperture: int = 10000,
                         flatten: bool = True,
                         scale: float = 2 * math.pi) -> torch.Tensor:
@@ -592,7 +592,7 @@ class PositionalEncoding(nn.Module):
 
     def __init__(
         self,
-        channels: int | None = None,
+        channels: Optional[int] = None,
         temperture: int = 10000,
         flatten: bool = True,
         scale: float = 2 * math.pi,
@@ -606,7 +606,7 @@ class PositionalEncoding(nn.Module):
         self._cache = None
 
     def forward(
-            self, x: torch.Tensor | tuple, device=torch.device("cpu")):
+            self, x: Union[torch.Tensor, Tuple], device=torch.device("cpu")):
         if isinstance(x, tuple):
             xshape = x
         else:
@@ -639,20 +639,20 @@ def get_activation(activation: str):
 
 class UNetND(nn.Module):
     def __init__(self,
-                 in_size: tuple[int, ...] = (10, 100, 100),
+                 in_size: Tuple[int, ...] = (10, 100, 100),
                  in_channels: int = 1,
-                 out_size: tuple[int, ...] = (4, 32, 32),
-                 out_channels: tuple[int] | int = 8,
+                 out_size: Tuple[int, ...] = (4, 32, 32),
+                 out_channels: Union[Tuple[int], int] = 8,
                  out_conv_blocks=1,
                  model_channels: int = 32,
                  embedding_input: int = 0,  # 0 for bulk water # 1 for cluster water
                  embedding_channels: int = 128,
-                 num_res_blocks: tuple[int, ...] = (2, 2),
-                 attention_resolutions: tuple[int, ...] = (4, 8),
+                 num_res_blocks: Tuple[int, ...] = (2, 2),
+                 attention_resolutions: Tuple[int, ...] = (4, 8),
                  dropout: float = 0.1,
-                 channel_mult: tuple[int, ...] = (1, 2, 4, 8),
+                 channel_mult: Tuple[int, ...] = (1, 2, 4, 8),
                  out_mult: int = 1,
-                 z_down: tuple[int, ...] = (1, 2, 4),
+                 z_down: Tuple[int, ...] = (1, 2, 4),
                  conv_resample: bool = True,
                  num_heads: int = 8,
                  activation: str = 'relu',
@@ -822,7 +822,7 @@ class UNetND(nn.Module):
                 f"conv{j+1}", _conv(self.dims, out_ch, ch, 1, bias=True))
             self.out.add_module(f"out{i}", layer)
 
-    def forward(self, x: Tensor, emb: Tensor | None = None) -> Tensor:
+    def forward(self, x: Tensor, emb: Optional[Tensor] = None) -> Tensor:
         x = self.inp_transform(x)
 
         xs = []
@@ -903,12 +903,12 @@ class CVAE3D(nn.Module):
                  model_channels,
                  latent_channels=8,
                  in_size=(12, 25, 25),  # Z, X, Y
-                 channel_mult: tuple[int, ...] = (1, 2, 4, 4),
-                 z_down: tuple[int, ...] = (1, 2),
+                 channel_mult: Tuple[int, ...] = (1, 2, 4, 4),
+                 z_down: Tuple[int, ...] = (1, 2),
                  cond_in_size=(4, 25, 25),
-                 cond_channel_mult: tuple[int, ...] = (1, 2, 4, 4),
-                 cond_z_down: tuple[int, ...] = (1, 2),
-                 attention_resolutions: tuple[int, ...] = (2, 4),
+                 cond_channel_mult: Tuple[int, ...] = (1, 2, 4, 4),
+                 cond_z_down: Tuple[int, ...] = (1, 2),
+                 attention_resolutions: Tuple[int, ...] = (2, 4),
                  dropout=0.0,
                  num_res_blocks=1,
                  use_gated_conv=False,

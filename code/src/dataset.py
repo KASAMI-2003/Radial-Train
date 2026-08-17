@@ -8,7 +8,7 @@ from ase import io, Atoms
 from PIL import Image
 from torch.utils.data import Dataset
 from torch.nn.functional import grid_sample
-from typing import Literal
+from typing import List, Tuple, Union, Optional
 from pathlib import Path
 
 from .utils import vec2box, make_grid_centers, make_grid_samples_points, masknms
@@ -16,14 +16,14 @@ from .transform import blur_fn, cutout_fn, flip_fn, jitter_fn, noisy_fn, noise_l
 
 class DetectDataset(Dataset):
     def __init__(self, 
-                 fname: str | Path,
-                 mode: Literal['afm+label', 'afm', 'label', 'afm+crop'] = 'afm+label',
-                 num_images: int | list[int]                    = 10,
-                 image_split: None | list[int]                  = None,
-                 image_size: tuple[int, int]                    = (100, 100),       # (H, W)
-                 real_size: tuple[float, float, float]          = (25.0, 25.0, 3.0),
-                 box_size: tuple[int, int, int]                 = (32, 32, 4),
-                 elements: tuple[int, ...]                      = (8, 1),
+                 fname: Union[str, Path],
+                 mode: str = 'afm+label',
+                 num_images: Union[int, List[int]]                    = 10,
+                 image_split: Optional[List[int]]                  = None,
+                 image_size: Tuple[int, int]                    = (100, 100),       # (H, W)
+                 real_size: Tuple[float, float, float]          = (25.0, 25.0, 3.0),
+                 box_size: Tuple[int, int, int]                 = (32, 32, 4),
+                 elements: Tuple[int, ...]                      = (8, 1),
                  flipz: bool                                    = False,
                  z_align: str                                   = 'bottom',
                  random_transform: bool                         = True,
@@ -31,7 +31,7 @@ class DetectDataset(Dataset):
                  random_cutout                                  = True,
                  random_flip                                    = False,
                  random_jitter                                  = True,
-                 random_noisy: float | bool                     = True,
+                 random_noisy: Union[float, bool]                     = True,
                  random_shift                                   = True,
                  random_top_remove_ratio                        = 0.0,
                  random_zoffset                                 = None,
@@ -195,7 +195,7 @@ class DetectDataset(Dataset):
 
         return atoms
     
-    def combine_label_crop(self, results: list[Atoms], nms = (2.0, 1.0), sort = True):
+    def combine_label_crop(self, results: List[Atoms], nms = (2.0, 1.0), sort = True):
         assert len(results) == len(self.keys)
         atoms_confs = []
         atoms_types = []

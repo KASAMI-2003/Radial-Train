@@ -2,7 +2,7 @@ import numpy as np
 import random
 import torch
 import torchvision
-from typing import TypeVar, Callable
+from typing import TypeVar, Callable, List, Tuple, Union
 
 def z_sampler(use: int, total: int, is_rand: bool = False) -> np.ndarray:
     """
@@ -22,8 +22,8 @@ def z_sampler(use: int, total: int, is_rand: bool = False) -> np.ndarray:
     else:
         return np.asarray([i for i in range(total) for _ in range((use // total + ((use % total) > i)))])
 
-def z_layerwise_sampler(use: list[int] = [4, 4, 3], 
-                        split: list[int] = [10, 18], 
+def z_layerwise_sampler(use: List[int] = [4, 4, 3], 
+                        split: List[int] = [10, 18], 
                         total: int = 25, 
                         is_rand: bool = False
                         ) -> np.ndarray:
@@ -35,21 +35,21 @@ def z_layerwise_sampler(use: list[int] = [4, 4, 3],
 
 OptArray = TypeVar('NDArray')
 OptAtoms = TypeVar('Atoms')
-transform_fn = Callable[[OptArray, OptAtoms], tuple[OptArray, OptAtoms]]
+transform_fn = Callable[[OptArray, OptAtoms], Tuple[OptArray, OptAtoms]]
 
-def noisy_fn(max_intensity: float | bool = 0.03) -> transform_fn:
+def noisy_fn(max_intensity: Union[float, bool] = 0.03) -> transform_fn:
     if isinstance(max_intensity, bool):
         max_intensity = 0.03
         
     def _fn(imgs, atoms):
         intensity = random.uniform(0, max_intensity)
-        if random.randbytes(1):
+        if random.getrandbits(1):
             return imgs + np.random.randn(*imgs.shape) * intensity, atoms
         else:
             return imgs + np.random.uniform(-intensity, intensity, imgs.shape), atoms
     return _fn
 
-def flip_fn(ratio: tuple[float, float] = (0.5, 0.5)) -> transform_fn:
+def flip_fn(ratio: Tuple[float, float] = (0.5, 0.5)) -> transform_fn:
     def _fn(imgs, atoms): # C Z Y X
         if random.random() > ratio[0]:
             imgs = imgs[:, :, ::-1]
@@ -78,7 +78,7 @@ def blur_fn(ksize: int = 3, sigma: float = 0.1) -> transform_fn:
         return imgs, atoms
     return _fn
 
-def pixel_shift_fn(max_shift: tuple[float, float] = (0.1, 0.1), ref: int = 3) -> transform_fn:
+def pixel_shift_fn(max_shift: Tuple[float, float] = (0.1, 0.1), ref: int = 3) -> transform_fn:
     def _fn(imgs, atoms):
         C, Z, H, W = imgs.shape
         y_shift = int(random.uniform(-max_shift[0] * H, max_shift[0] * H)) / (Z - 1)
@@ -99,7 +99,7 @@ def normalize_fn() -> transform_fn:
         return imgs, atoms
     return _fn
 
-def noise_label_fn(offset: tuple[float, float, float] = (0.0, 0.0, 0.0), sigma: tuple[float, float, float] = (0.0, 0.0, 0.1)):
+def noise_label_fn(offset: Tuple[float, float, float] = (0.0, 0.0, 0.0), sigma: Tuple[float, float, float] = (0.0, 0.0, 0.1)):
     def _fn(imgs, atoms):
         noise = np.random.normal(offset, sigma, size=atoms.positions.shape)
         atoms.positions += noise

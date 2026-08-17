@@ -14,6 +14,7 @@ from scipy.spatial.distance import cdist
 from sklearn.cluster import DBSCAN
 from torch.utils.data import Sampler
 from torchmetrics import Metric
+from typing import List, Tuple, Union
 
 
 def get_logger(name, save_dir = None, level: int = logging.INFO):
@@ -320,7 +321,7 @@ def vec2box(unit_pos, vec=None, box_size=(25, 25, 12)):
 def box2atom(box,
              cell=[25.0, 25.0, 16.0],
              threshold=0.5,
-             cutoff: float | tuple[float, float] = 2.0,
+             cutoff: Union[float, Tuple[float, float]] = 2.0,
              nms=True,
              order = ("O", "H"),
              ):
@@ -462,10 +463,10 @@ def write_water_data(path, positions, cell, bond = 0.9572, angle = 104.52):
 
 class ConfusionMatrix(Metric):
     def __init__(self, 
-                 count_types: tuple[str, ...] = ("O", "H"),
-                 real_size: tuple[float, ...] = (25.0, 25.0, 3.0), 
+                 count_types: Tuple[str, ...] = ("O", "H"),
+                 real_size: Tuple[float, ...] = (25.0, 25.0, 3.0), 
                  match_distance: float = 1.0, 
-                 split: list[float] = [0.0, 3.0]
+                 split: List[float] = [0.0, 3.0]
                  ):
         super().__init__()
         self.register_buffer("_real_size", torch.as_tensor(real_size, dtype=torch.float))
@@ -481,7 +482,7 @@ class ConfusionMatrix(Metric):
         self.split = split
         self.split[-1] += 1e-5
     
-    def update(self, preds: list[Atoms], targs: list[Atoms]):
+    def update(self, preds: List[Atoms], targs: List[Atoms]):
         if isinstance(preds, Atoms):
             preds = [preds]
         if isinstance(targs, Atoms):
@@ -524,10 +525,10 @@ class ConfusionMatrix(Metric):
     
 class MeanAbsoluteDistance(Metric):
     def __init__(self, 
-                 count_types: tuple[str, ...] = ("O", "H"),
-                 real_size: tuple[float, ...] = (25.0, 25.0, 3.0), 
+                 count_types: Tuple[str, ...] = ("O", "H"),
+                 real_size: Tuple[float, ...] = (25.0, 25.0, 3.0), 
                  match_distance: float = 1.0, 
-                 split: list[float] = [0.0, 3.0]
+                 split: List[float] = [0.0, 3.0]
                  ):
         super().__init__()
         self.register_buffer("_real_size", torch.as_tensor(real_size, dtype=torch.float))
@@ -543,7 +544,7 @@ class MeanAbsoluteDistance(Metric):
         self.split = split
         self.split[-1] += 1e-5
     
-    def update(self, preds: list[Atoms], targs: list[Atoms]):
+    def update(self, preds: List[Atoms], targs: List[Atoms]):
         if isinstance(preds, Atoms):
             preds = [preds]
         if isinstance(targs, Atoms):
@@ -569,10 +570,10 @@ class MeanAbsoluteDistance(Metric):
     
 class MeanSquareDistance(Metric):
     def __init__(self, 
-                 count_types: tuple[str, ...] = ("O", "H"),
-                 real_size: tuple[float, ...] = (25.0, 25.0, 3.0), 
+                 count_types: Tuple[str, ...] = ("O", "H"),
+                 real_size: Tuple[float, ...] = (25.0, 25.0, 3.0), 
                  match_distance: float = 1.0, 
-                 split: list[float] = [0.0, 3.0]
+                 split: List[float] = [0.0, 3.0]
                  ):
         super().__init__()
         self.register_buffer("_real_size", torch.as_tensor(real_size, dtype=torch.float))
@@ -588,7 +589,7 @@ class MeanSquareDistance(Metric):
         self.split = split
         self.split[-1] += 1e-5
     
-    def update(self, preds: list[Atoms], targs: list[Atoms]):
+    def update(self, preds: List[Atoms], targs: List[Atoms]):
         if isinstance(preds, Atoms):
             preds = [preds]
         if isinstance(targs, Atoms):
@@ -614,9 +615,9 @@ class MeanSquareDistance(Metric):
     
 class ValidProbability(Metric):
     def __init__(self, 
-                 real_size: tuple[float, ...] = (25.0, 25.0, 3.0), 
+                 real_size: Tuple[float, ...] = (25.0, 25.0, 3.0), 
                  match_distance: float = 1.1, 
-                 split: list[float] = [0.0, 3.0]
+                 split: List[float] = [0.0, 3.0]
                  ):
         super().__init__()
         self.register_buffer("_real_size", torch.as_tensor(real_size, dtype=torch.float))
@@ -631,7 +632,7 @@ class ValidProbability(Metric):
         self.split = split
         self.split[-1] += 1e-5
     
-    def update(self, atoms: list[Atoms]):
+    def update(self, atoms: List[Atoms]):
         if isinstance(atoms, Atoms):
             atoms = [atoms]
 

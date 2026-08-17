@@ -54,6 +54,10 @@ fi
 
 # ---- 科学计算 ----
 echo ">>> 安装依赖 ..."
+if [ "$PY_MAJOR" -eq 3 ] && [ "$PY_MINOR" -eq 6 ]; then
+    # Python 3.6 没有内置 dataclasses, 需要反向移植包 (configs 使用 @dataclass)
+    pip install dataclasses
+fi
 pip install numpy scipy pillow scikit-learn pandas matplotlib ase torchmetrics requests tqdm
 
 # ---- 验证 ----
