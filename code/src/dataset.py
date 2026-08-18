@@ -11,6 +11,12 @@ from torch.nn.functional import grid_sample
 from typing import List, Tuple, Union, Optional
 from pathlib import Path
 
+# 兼容新旧 Pillow: 旧版(Python3.6)用 Image.ROTATE_270, 新版(Pillow>=9.1)用 Image.Transpose.ROTATE_270
+try:
+    ROTATE_270 = Image.Transpose.ROTATE_270
+except AttributeError:
+    ROTATE_270 = Image.ROTATE_270
+
 from .utils import vec2box, make_grid_centers, make_grid_samples_points, masknms
 from .transform import blur_fn, cutout_fn, flip_fn, jitter_fn, noisy_fn, noise_label_fn, normalize_fn, pixel_shift_fn, random_remove_atoms_fn, z_layerwise_sampler, z_sampler
 
@@ -144,7 +150,7 @@ class DetectDataset(Dataset):
             idxs = self.sample(len(files))
             afms = []
             for i in idxs:
-                img = Image.open(files[i]).convert('L').transpose(Image.Transpose.ROTATE_270)
+                img = Image.open(files[i]).convert('L').transpose(ROTATE_270)
                 img = np.array(img.resize(self.image_size))
                 afms.append(img)
             
