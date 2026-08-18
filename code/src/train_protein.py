@@ -212,7 +212,7 @@ class ProteinTrainer:
             fn = partial(
                 box2atom,
                 cell=self.cfg.dataset.real_size,
-                threshold=0.5,
+                threshold=self.cfg.dataset.threshold,
                 cutoff=(1.8, 1.6, 1.5, 1.5),
                 nms=self.cfg.dataset.nms,
                 order=self.cfg.dataset.ion_type,
@@ -258,7 +258,7 @@ class ProteinTrainer:
             fn = partial(
                 box2atom,
                 cell=self.cfg.dataset.real_size,
-                threshold=0.5,
+                threshold=self.cfg.dataset.threshold,
                 cutoff=(1.8, 1.6, 1.5, 1.5),
                 nms=self.cfg.dataset.nms,
                 order=self.cfg.dataset.ion_type,

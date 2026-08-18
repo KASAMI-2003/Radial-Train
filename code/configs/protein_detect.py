@@ -121,6 +121,8 @@ class Dataset:
     ion_type: List[str] = field(default_factory=lambda: ["C", "N", "O"])
     split: List[float] = field(default_factory=lambda: [0.0, 4.0, 8.0])
     nms: bool = True
+    # 原子检测置信度阈值 (阈值扫描得出 0.1 时 AP/AR/F1 最优)
+    threshold: float = 0.1
 
 
 @dataclass

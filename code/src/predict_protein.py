@@ -75,7 +75,7 @@ def voxel_to_atoms(preds, cfg):
         atoms = box2atom(
             preds[i],
             cell=cfg.dataset.real_size,
-            threshold=0.5,
+            threshold=cfg.dataset.threshold,
             cutoff=(1.8, 1.6, 1.5),         # C, N, O cutoff
             nms=cfg.dataset.nms,
             order=cfg.dataset.ion_type,
