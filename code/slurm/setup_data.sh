@@ -41,23 +41,16 @@ python tools/download_pdbs.py \
     --outdir "$BASE_DIR/dataset/protein_pdbs"
 echo "    PDB: $(ls "$BASE_DIR/dataset/protein_pdbs"/*.pdb 2>/dev/null | wc -l) 个"
 
-# ---- 步骤 2: 生成 AFM 数据 ----
+# ---- 步骤 2: 软链接 ----
 echo ""
-echo ">>> 步骤 2: 生成 AFM 图像 + XYZ 标签 ..."
-python tools/protein_afm_sim.py \
-    --pdb-dir "$BASE_DIR/dataset/protein_pdbs" \
-    --out-dir "$BASE_DIR/dataset/protein_train" \
-    --num-orientations 36
-echo "    样本: $(ls -d "$BASE_DIR/dataset/protein_train/afm"/*/ 2>/dev/null | wc -l) 个"
-
-# ---- 步骤 3: 软链接 ----
-echo ""
-echo ">>> 步骤 3: 创建软链接 ..."
+echo ">>> 步骤 2: 创建软链接 ..."
 ln -sfn "$BASE_DIR/dataset"  "$PROJECT_DIR/code/dataset"
 ln -sfn "$BASE_DIR"           "$PROJECT_DIR/code/run_data"
 
 echo ""
 echo "============================================"
-echo "数据准备完成!"
+echo "PDB 下载完成!"
+echo "AFM 图像 + XYZ 标签请用 bioAFMviewer 生成后,"
+echo "放入: $BASE_DIR/dataset/protein_train/afm 与 label 目录。"
 echo "下一步: sbatch --gpus=1 ./slurm/run.sh"
 echo "============================================"
