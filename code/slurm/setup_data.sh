@@ -3,7 +3,8 @@
 # N26 集群数据准备脚本 (在 login 节点运行)
 # 运行: bash slurm/setup_data.sh
 #
-# 前置: bash slurm/setup_venv.sh
+# 功能: 下载 PDB -> 生成 10 通道 AFM 训练数据 (72 角度) -> 软链接
+# 前置: bash slurm/setup_venv.sh  (需先装好 venv 与依赖)
 # ============================================================
 
 set -e
@@ -41,16 +42,29 @@ python tools/download_pdbs.py \
     --outdir "$BASE_DIR/dataset/protein_pdbs"
 echo "    PDB: $(ls "$BASE_DIR/dataset/protein_pdbs"/*.pdb 2>/dev/null | wc -l) 个"
 
-# ---- 步骤 2: 软链接 ----
+# ---- 步骤 2: 生成 10 通道 AFM 训练数据 ----
 echo ""
-echo ">>> 步骤 2: 创建软链接 ..."
+echo ">>> 步骤 2: 生成 AFM 训练数据 (每蛋白 72 角度) ..."
+echo "    清空旧训练数据 ..."
+rm -rf "$BASE_DIR/dataset/protein_train/afm" \
+       "$BASE_DIR/dataset/protein_train/label"
+
+python tools/pdb_to_afm.py \
+    --pdb-dir "$BASE_DIR/dataset/protein_pdbs" \
+    --out-dir "$BASE_DIR/dataset/protein_train" \
+    --num-orientations 72
+
+echo "    AFM 样本: $(ls "$BASE_DIR/dataset/protein_train/afm" 2>/dev/null | wc -l) 个"
+echo "    Label:    $(ls "$BASE_DIR/dataset/protein_train/label"/*.xyz 2>/dev/null | wc -l) 个"
+
+# ---- 步骤 3: 软链接 ----
+echo ""
+echo ">>> 步骤 3: 创建软链接 ..."
 ln -sfn "$BASE_DIR/dataset"  "$PROJECT_DIR/code/dataset"
 ln -sfn "$BASE_DIR"           "$PROJECT_DIR/code/run_data"
 
 echo ""
 echo "============================================"
-echo "PDB 下载完成!"
-echo "AFM 图像 + XYZ 标签请用 bioAFMviewer 生成后,"
-echo "放入: $BASE_DIR/dataset/protein_train/afm 与 label 目录。"
+echo "数据准备完成!"
 echo "下一步: sbatch --gpus=1 ./slurm/run.sh"
 echo "============================================"
