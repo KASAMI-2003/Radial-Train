@@ -2,7 +2,7 @@
 # ============================================================
 # N26 预测推理
 # 提交: sbatch --gpus=1 ./slurm/predict.sh
-# 使用前修改 CKPT 指向训练产出的 .pkl
+# 自动使用最新训练的 checkpoint
 # ============================================================
 
 #SBATCH --job-name=afm-predict
@@ -18,8 +18,14 @@ PROJECT_DIR="$HOME/run/test/Radial-Train"
 BASE_DIR="$HOME/run/protein_afm"
 VENV_DIR="$BASE_DIR/venv"
 
-# ---- 修改这里为实际的 checkpoint 路径 ----
-CKPT="$BASE_DIR/outputs/YYYYMMDD-HHMMSS-protein/PROTEIN_EXXX_LX.XXXe-01.pkl"
+# ---- 自动找最新训练的 checkpoint ----
+CKPT_DIR=$(ls -dt "$BASE_DIR"/outputs/*-protein 2>/dev/null | head -n 1)
+CKPT=$(ls -t "$CKPT_DIR"/PROTEIN_E*.pkl 2>/dev/null | head -n 1)
+
+if [ -z "$CKPT" ]; then
+    echo "错误: 未找到 checkpoint, 请确认 $BASE_DIR/outputs/ 下有训练输出"
+    exit 1
+fi
 AFM_DIR="$BASE_DIR/dataset/protein_train/afm"
 
 mkdir -p "$PROJECT_DIR/code/slurm_logs"
