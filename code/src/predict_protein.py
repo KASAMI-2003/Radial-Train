@@ -18,6 +18,12 @@ from pathlib import Path
 from PIL import Image
 from ase.io import write
 
+# 兼容新旧 Pillow
+try:
+    ROTATE_270 = Image.Transpose.ROTATE_270
+except AttributeError:
+    ROTATE_270 = Image.ROTATE_270
+
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from configs.protein_detect import ProteinDetectConfig as Config
 from src.network import UNetND
@@ -40,8 +46,8 @@ def load_model(ckpt_path: Path, device: torch.device):
     return model, cfg
 
 
-def load_afm(afm_dir: Path) -> torch.Tensor:
-    """从目录加载 AFM 图像堆叠 (10通道 × 100×100)"""
+def load_afm(afm_dir: Path, image_size=(100, 100)) -> torch.Tensor:
+    """从目录加载 AFM 图像堆叠 (10通道 × 100×100)，与训练读取方式完全一致"""
     if (afm_dir / "img.npz").exists():
         data = np.load(afm_dir / "img.npz")["img"].astype(np.float32) / 255.0
     else:
@@ -51,9 +57,16 @@ def load_afm(afm_dir: Path) -> torch.Tensor:
         )
         channels = []
         for p in pngs:
-            img = np.array(Image.open(p).convert("L"))
+            # 训练时 dataset._read_afm 会 transpose(ROTATE_270) + resize
+            img = Image.open(p).convert("L").transpose(ROTATE_270)
+            img = np.array(img.resize(image_size))
             channels.append(img)
         data = np.stack(channels, axis=0).astype(np.float32) / 255.0
+
+    # 逐通道 min-max 归一化 (与训练 normalize_fn 一致)
+    maxv = data.max(axis=(-2, -1), keepdims=True)
+    minv = data.min(axis=(-2, -1), keepdims=True)
+    data = (data - minv) / (maxv - minv + 1e-8)
 
     # 添加 batch 和 channel 维度: (Z, H, W) -> (1, 1, Z, H, W)
     tensor = torch.from_numpy(data).unsqueeze(0).unsqueeze(0)
@@ -139,7 +152,7 @@ def main():
             print(f"  跳过 (不存在): {afm_dir}")
             continue
 
-        tensor = load_afm(afm_dir)
+        tensor = load_afm(afm_dir, cfg.dataset.image_size)
         preds = predict_atoms(model, tensor, cfg, device)
         atoms_list = voxel_to_atoms(preds, cfg)
 
