@@ -52,7 +52,9 @@ rm -rf "$BASE_DIR/dataset/protein_train/afm" \
 python tools/pdb_to_afm.py \
     --pdb-dir "$BASE_DIR/dataset/protein_pdbs" \
     --out-dir "$BASE_DIR/dataset/protein_train" \
-    --num-orientations 72
+    --num-orientations 72 \
+    --grid 512 512 \
+    --tip-radius 2.0
 
 echo "    AFM 样本: $(ls "$BASE_DIR/dataset/protein_train/afm" 2>/dev/null | wc -l) 个"
 echo "    Label:    $(ls "$BASE_DIR/dataset/protein_train/label"/*.xyz 2>/dev/null | wc -l) 个"

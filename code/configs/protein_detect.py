@@ -24,9 +24,9 @@ class Scheduler:
 @dataclass
 class ModelParams:
     # ---- 网络结构 ----
-    in_size: Tuple[int, int, int] = (10, 100, 100)  # 10 通道, 100x100 像素
+    in_size: Tuple[int, int, int] = (10, 512, 512)  # 10 通道, 512x512 像素
     in_channels: int = 1
-    out_size: Tuple[int, int, int] = (8, 32, 32)    # Nz=8 (更深), 32x32 voxel
+    out_size: Tuple[int, int, int] = (10, 32, 32)   # Nz=10 (与主干 z 自由度对齐), 32x32 voxel
     # 3 元素(C,N,O) × 4 通道(conf+dx+dy+dz) = 12 输出通道
     out_channels: List[int] = field(default_factory=lambda: [12])
     model_channels: int = 32
@@ -48,7 +48,7 @@ class ModelParams:
     # ---- 损失权重 ----
     cls_weight: float = 1.0
     xy_weight: float = 0.5
-    z_weight: float = 0.5
+    z_weight: float = 1.0
     pos_weight: List[float] = field(default_factory=lambda: [5.0, 5.0, 5.0])  # C, N, O
 
 
@@ -90,7 +90,7 @@ class TuneModel:
 class Setting:
     """训练设置 - 针对 14 核优化的参数"""
     epoch: int = 50
-    batch_size: int = 4         # CPU 3D U-Net 内存受限
+    batch_size: int = 1         # 512x512 高分辨率, 显存受限必须降到 1
     num_workers: int = 0        # Windows 单进程 (OMP 线程替代)
     pin_memory: bool = False
     log_every: int = 50
@@ -113,11 +113,11 @@ class Dataset:
     train_path: str = "dataset/protein_train"
     test_path: str = "dataset/protein_train"       # 同目录, 自动分割
     num_images: int = 10                # 10 通道 AFM 图像
-    image_size: Tuple[int, int] = (100, 100)
+    image_size: Tuple[int, int] = (512, 512)
     image_split: None = None           # 不使用分层采样
     # 蛋白质参数
     real_size: Tuple[float, float, float] = (25.0, 25.0, 8.0)
-    box_size: Tuple[int, int, int] = (32, 32, 8)
+    box_size: Tuple[int, int, int] = (32, 32, 10)
     ion_type: List[str] = field(default_factory=lambda: ["C", "N", "O"])
     split: List[float] = field(default_factory=lambda: [0.0, 4.0, 8.0])
     nms: bool = True
