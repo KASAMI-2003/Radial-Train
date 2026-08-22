@@ -305,7 +305,7 @@ def main():
                         help="AFM 通道数 (探针高度数)")
     parser.add_argument("--box", type=float, nargs=3, default=[25.0, 25.0, 8.0],
                         help="物理盒子尺寸 Lx Ly Lz (Å)，需与 config real_size 一致")
-    parser.add_argument("--grid", type=int, nargs=2, default=[512, 512],
+    parser.add_argument("--grid", type=int, nargs=2, default=[256, 256],
                         help="高度图像素 (H, W)，需与 config image_size 一致")
     parser.add_argument("--sigma", type=float, default=0.5,
                         help="sigmoid 平滑参数 (Å)，越小通道越锐利")
