@@ -1,17 +1,31 @@
 #!/bin/bash
 # ============================================================
-# N26 集群数据准备脚本 (在 login 节点运行)
-# 运行: bash slurm/setup_data.sh
+# N26 集群数据准备脚本
+# 运行方式 A (推荐, login 节点, 有网络):
+#   bash slurm/setup_data.sh
+# 运行方式 B (sbatch 提交到计算节点):
+#   sbatch --gpus=0 ./slurm/setup_data.sh
 #
 # 功能: 下载 PDB -> 生成 10 通道 AFM 训练数据 (72 角度) -> 软链接
 # 前置: bash slurm/setup_venv.sh  (需先装好 venv 与依赖)
 # ============================================================
+
+#SBATCH --job-name=protein-setup
+#SBATCH --output=/data02/home/%u/run/test/Radial-Train/code/slurm_logs/setup-%j.out
+#SBATCH --error=/data02/home/%u/run/test/Radial-Train/code/slurm_logs/setup-%j.err
+#SBATCH --time=02:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
 
 set -e
 
 PROJECT_DIR="${1:-$HOME/run/test/Radial-Train}"
 BASE_DIR="$HOME/run/protein_afm"
 VENV_DIR="$BASE_DIR/venv"
+
+# ---- 提前确保日志目录存在 (SLURM 打开 --output 前需要) ----
+mkdir -p "$PROJECT_DIR/code/slurm_logs"
+mkdir -p "$BASE_DIR/slurm_logs"
 
 echo "============================================"
 echo "N26 数据准备"
